@@ -795,7 +795,7 @@ static __thread char llco_main_stack[LLCO_ASYNCIFY_STACK_SIZE];
 #if !defined(LLCO_READY)
 #define LLCO_UCONTEXT
 #define LLCO_READY
-#define LLCO_METHOD "ucontext,posix"
+#define LLCO_METHOD "ucontext"
 #ifndef LLCO_STACKJMP
 #define LLCO_STACKJMP
 #endif
