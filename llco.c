@@ -19,6 +19,7 @@
 #else
 #include <stddef.h>
 #include <stdbool.h>
+#define LLCO_MINSTACKSIZE 16384
 #define LLCO_EXTERN static
 struct llco_desc {
     void *stack;
