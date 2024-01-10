@@ -3,14 +3,22 @@
 // Copyright (c) 2024 Joshua J Baker.
 // This software is available as a choice of Public Domain or MIT-0.
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
+#ifdef _FORTIFY_SOURCE
+#define LLCO_FORTIFY_SOURCE _FORTIFY_SOURCE
+// Disable __longjmp_chk validation so that we can jump between stacks.
+#pragma push_macro("_FORTIFY_SOURCE")
+#undef _FORTIFY_SOURCE
+#include <setjmp.h>
+#define _FORTIFY_SOURCE LLCO_FORTIFY_SOURCE
+#undef LLCO_FORTIFY_SOURCE
+#pragma pop_macro("_FORTIFY_SOURCE")
+#endif
 
 #ifndef LLCO_STATIC
 #include "llco.h"
 #else
+#include <stddef.h>
+#include <stdbool.h>
 #define LLCO_EXTERN static
 struct llco_desc {
     void *stack;
@@ -21,6 +29,8 @@ struct llco_desc {
 };
 struct llco;
 #endif
+
+#include <stdlib.h>
 
 #ifndef LLCO_EXTERN
 #define LLCO_EXTERN
@@ -860,16 +870,6 @@ static void llco_stackjmp(void *stack, size_t stack_size,
 #endif // Ucontext
 
 #if defined(LLCO_STACKJMP)
-#ifdef _FORTIFY_SOURCE
-#define LLCO_FORTIFY_SOURCE _FORTIFY_SOURCE
-// Disable __longjmp_chk validation so that we can jump between stacks.
-#pragma push_macro("_FORTIFY_SOURCE")
-#undef _FORTIFY_SOURCE
-#include <setjmp.h>
-#define _FORTIFY_SOURCE LLCO_FORTIFY_SOURCE
-#undef LLCO_FORTIFY_SOURCE
-#pragma pop_macro("_FORTIFY_SOURCE")
-#endif
 #include <setjmp.h>
 #ifdef _WIN32
 // For reasons outside of my understanding, Windows does not allow for jumping
@@ -881,6 +881,8 @@ static void llco_stackjmp(void *stack, size_t stack_size,
 ////////////////////////////////////////////////////////////////////////////////
 // llco switching code
 ////////////////////////////////////////////////////////////////////////////////
+
+#include <stdio.h>
 
 struct llco {
     struct llco_desc desc;
