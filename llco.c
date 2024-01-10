@@ -811,6 +811,34 @@ static __thread char llco_main_stack[LLCO_ASYNCIFY_STACK_SIZE];
 static __thread ucontext_t stackjmp_ucallee;
 static __thread int stackjmp_ucallee_gotten = 0;
 
+#if defined(__APPLE__) && defined(__aarch64__) && !defined(LLCO_NOSTACKADJUST)
+// Here we ensure that the initial context switch will *not* page the 
+// entire stack into process memory before executing the entry point
+// function. Which is a behavior that can be observed on Mac OS with
+// Apple Silicon. This "trick" can be optionally removed at the expense
+// of slower initial jumping into large stacks.
+enum llco_stack_grows { DOWNWARDS, UPWARDS }; 
+
+static enum llco_stack_grows llco_stack_grows0(int *addr0) { 
+    int addr1; 
+    return addr0 < &addr1 ? UPWARDS : DOWNWARDS;
+} 
+
+static enum llco_stack_grows llco_stack_grows(void) {
+    int addr0;
+    return llco_stack_grows0(&addr0);
+}
+
+static void llco_adjust_ucontext_stack(ucontext_t *ucp) {
+    if (llco_stack_grows() == UPWARDS) {
+        ucp->uc_stack.ss_sp = (char*)ucp->uc_stack.ss_sp+ucp->uc_stack.ss_size;
+        ucp->uc_stack.ss_size = 0;
+    }
+}
+#else 
+#define llco_adjust_ucontext_stack(ucp)
+#endif
+
 // Ucontext always uses stackjmp with setjmp/longjmp, instead of swapcontext
 // becuase it's much faster.
 LLCO_NOINLINE LLCO_NORETURN
@@ -823,6 +851,7 @@ static void llco_stackjmp(void *stack, size_t stack_size,
     }
     stackjmp_ucallee.uc_stack.ss_sp = stack;
     stackjmp_ucallee.uc_stack.ss_size = stack_size;
+    llco_adjust_ucontext_stack(&stackjmp_ucallee);
     makecontext(&stackjmp_ucallee, (void*)entry, 0);
     setcontext(&stackjmp_ucallee);
     llco_exit();
