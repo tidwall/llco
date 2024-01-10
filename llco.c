@@ -981,7 +981,7 @@ static void llco_switch0(struct llco_desc *desc, struct llco *co,
 // automatically by the program.
 LLCO_EXTERN
 void llco_start(struct llco_desc *desc, bool final) {
-    if (!desc && desc->stack_size < LLCO_MINSTACKSIZE) {
+    if (!desc || desc->stack_size < LLCO_MINSTACKSIZE) {
         fprintf(stderr, "stack too small\n");
         abort();
     }

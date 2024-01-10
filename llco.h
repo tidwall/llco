@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define LLCO_MINSTACKSIZE 32768
+#define LLCO_MINSTACKSIZE 16384
 
 struct llco_desc {
     void *stack;
