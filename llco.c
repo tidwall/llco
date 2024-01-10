@@ -928,6 +928,7 @@ static void llco_entry(void *arg) {
     llco_cur = arg;
     llco_cur->desc = llco_desc;
 #else
+    (void)arg;
     struct llco self = { .desc = llco_desc };
     llco_cur = &self;
 #endif
