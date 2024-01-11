@@ -970,12 +970,12 @@ static void llco_switch1(struct llco *from, struct llco *to,
                 llco_main_stack, LLCO_ASYNCIFY_STACK_SIZE);
         }
         stack_size -= LLCO_ASYNCIFY_STACK_SIZE;
-        stack_size -= sizeof(struct llco);
         char *astack = ((char*)stack) + stack_size;
-        struct llco *self = (void*)(astack + LLCO_ASYNCIFY_STACK_SIZE);
+        size_t astack_size = LLCO_ASYNCIFY_STACK_SIZE - sizeof(struct llco);
+        struct llco *self = (void*)(astack + astack_size);
         memset(self, 0, sizeof(struct llco));
         emscripten_fiber_init(&self->fiber, llco_entry, 
-           self, stack, stack_size, astack, LLCO_ASYNCIFY_STACK_SIZE);
+           self, stack, stack_size, astack, astack_size);
         emscripten_fiber_swap(&from->fiber, &self->fiber);
     }
 #elif defined(LLCO_WINDOWS)
