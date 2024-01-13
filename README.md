@@ -9,9 +9,10 @@ coroutine libraries.
 
 ## Features
 
-- Cross-platform. Linux, Mac, Webassembly, Android, iOS, Windows, RaspPi, RISC-V.
-- No allocations. You'll need to bring your own stack.
+- Stackful coroutines. No allocations. Bring your own stack.
+- Cross-platform. Linux, Mac, Webassembly, iOS, Android, FreeBSD, Windows, RaspPi, RISC-V.
 - Fast context switching. Uses assembly in most cases.
+- No built-in scheduler. You are in charge of the coroutine priority.
 
 ## API
 
@@ -37,7 +38,7 @@ void entry(void *udata) {
 }
 
 int main(void) {
-    // Start a coroutine using an newly allocated stack
+    // Start a coroutine from the main function using an newly allocated stack.
     struct llco_desc desc = {
         .stack = malloc(LLCO_MINSTACKSIZE),
         .stack_size = LLCO_MINSTACKSIZE,
@@ -50,11 +51,34 @@ int main(void) {
 
 ```
 
+## API
+
+```C
+// Switch to another coroutine. Set the `co` param to NULL to switch to the 
+// main function. Use the final param to tell the program that you are done
+// with the current coroutine, at which point it's respective `cleanup` 
+// callback will be called.
+void llco_switch(struct llco *co, bool final);
+
+// Start a new coroutine. This can be called from the main function or a 
+// nested coroutine.
+void llco_start(struct llco_desc *desc, bool final);
+
+
+// Return the current coroutine or NULL if not currently running in a
+// coroutine.
+struct llco *llco_current(void);
+
+// Returns a string that indicates which coroutine method is being used by
+// the program. Such as "asm" or "ucontext", etc.
+const char *llco_method(void *caps);
+```
+
 ## Notes
 
 - Windows: Only x86_64 is supported at this time. The Windows Fibers API is not 
-  being used as a fallback due to it's need to allocate memory dynamically for
-  the `CreateFiber` call.
+  currently suitable as a fallback do to the `CreateFiber` call needing to
+  allocate memory dynamically.
 - Webassembly: Must be compiled with Emscripten using the `-sASYNCIFY` flag.
 - All other platforms may fallback to using ucontext when the assembly method
   is not available. The `uco_method(0)` function can be used to see if assembly
@@ -63,10 +87,13 @@ int main(void) {
   coroutine. Once the coroutine has been started, `setjmp` and `longjmp` take
   over the switching duties.
 
-## Options
+## Compiler Options
 
-- `-DLLCO_NOASM`: Disable assembly
-- `-DLLCO_STACKJMP`: Always use `setjmp` and `longjmp` for jumping between stacks.
+- `-DLLCO_NOASM`: Disable assembly. Use ucontext fallback instead.
+- `-DLLCO_STACKJMP`: Use `setjmp` and `longjmp` for jumping between stacks, 
+   even with the assembly method.
+
+## Acknowledgements
 
 Much of the assembly code was adapted from the [https://github.com/edubart/minicoro](minicoro)
 project by [Eduardo Bart](https://github.com/edubart), which was originally

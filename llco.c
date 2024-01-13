@@ -1009,9 +1009,6 @@ static void llco_switch0(struct llco_desc *desc, struct llco *co,
 ////////////////////////////////////////////////////////////////////////////////
 
 // Start a new coroutine.
-// Setting the 'final' param to true tells the program that this is the last
-// switch for the current coroutine, which then will be cleaned up
-// automatically by the program.
 LLCO_EXTERN
 void llco_start(struct llco_desc *desc, bool final) {
     if (!desc || desc->stack_size < LLCO_MINSTACKSIZE) {
@@ -1023,9 +1020,6 @@ void llco_start(struct llco_desc *desc, bool final) {
 }
 
 // Switch to another coroutine.
-// Setting the 'final' param to true tells the program that this is the last
-// switch for the current coroutine, which then will be cleaned up
-// automatically by the program.
 LLCO_EXTERN
 void llco_switch(struct llco *co, bool final) {
     llco_cleanup_guard();
