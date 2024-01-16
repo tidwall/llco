@@ -9,10 +9,12 @@ coroutine libraries.
 
 ## Features
 
-- Stackful coroutines. No allocations. Bring your own stack.
-- Cross-platform. Linux, Mac, Webassembly, iOS, Android, FreeBSD, Windows, RaspPi, RISC-V.
-- Fast context switching. Uses assembly in most cases.
-- No built-in scheduler. You are in charge of the coroutine priority.
+- Stackful coroutines. 
+- No allocations (bring your own stack)
+- Cross-platform. Linux, Mac, Webassembly, iOS, Android, FreeBSD, Windows, RaspPi, RISC-V
+- Fast context switching. Uses assembly in most cases
+- No built-in scheduler. You are in charge of the coroutine priority
+- Single file amalgamation. No dependencies.
 
 ## API
 
@@ -74,7 +76,7 @@ struct llco *llco_current(void);
 const char *llco_method(void *caps);
 ```
 
-## Notes
+## Caveats
 
 - Windows: Only x86_64 is supported at this time. The Windows Fibers API is not 
   currently suitable as a fallback do to the `CreateFiber` call needing to
