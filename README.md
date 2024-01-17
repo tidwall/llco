@@ -16,14 +16,6 @@ coroutine libraries.
 - No built-in scheduler. You are in charge of the coroutine priority
 - Single file amalgamation. No dependencies.
 
-## API
-
-```C
-void llco_start(struct llco_desc *desc, bool final);
-void llco_switch(struct llco *co, bool final);
-struct llco *llco_current(void);
-```
-
 ## Example
 
 ```C
