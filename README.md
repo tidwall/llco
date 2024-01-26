@@ -89,7 +89,7 @@ const char *llco_method(void *caps);
 
 ## Acknowledgements
 
-Much of the assembly code was adapted from the [https://github.com/edubart/minicoro](minicoro)
+Much of the assembly code was adapted from the [minicoro](https://github.com/edubart/minicoro)
 project by [Eduardo Bart](https://github.com/edubart), which was originally
 adapted from the [Lua Coco](https://coco.luajit.org) project by
 [Mike Pall](https://github.com/MikePall).
