@@ -3,6 +3,8 @@
 // Copyright (c) 2024 Joshua J Baker.
 // This software is available as a choice of Public Domain or MIT-0.
 
+
+
 #ifdef _FORTIFY_SOURCE
 #define LLCO_FORTIFY_SOURCE _FORTIFY_SOURCE
 // Disable __longjmp_chk validation so that we can jump between stacks.
@@ -66,6 +68,15 @@ static void llco_exit(void) {
 
 #ifdef LLCO_ASM
 #error LLCO_ASM must not be defined
+#endif
+
+// Passing the entry function into assembly requires casting the function 
+// pointer to an object pointer, which is forbidden in the ISO C spec but
+// allowed in posix. Ignore the warning attributed to this  requirement when
+// the -pedantic compiler flag is provide.
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -266,7 +277,6 @@ static void llco_asmctx_make(struct llco_asmctx *ctx, void* stack_base,
     ctx->lr = (void*)(_llco_asm_entry);
 }
 #endif 
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // RISC-V (rv64/rv32)
@@ -744,6 +754,10 @@ static void llco_asmctx_make(struct llco_asmctx *ctx,
 #endif // x64
 
 // --- END ASM Code --- //
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // ASM with stackjmp activated
