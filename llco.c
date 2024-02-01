@@ -3,8 +3,6 @@
 // Copyright (c) 2024 Joshua J Baker.
 // This software is available as a choice of Public Domain or MIT-0.
 
-
-
 #ifdef _FORTIFY_SOURCE
 #define LLCO_FORTIFY_SOURCE _FORTIFY_SOURCE
 // Disable __longjmp_chk validation so that we can jump between stacks.
@@ -495,7 +493,6 @@ static void llco_asmctx_make(struct llco_asmctx *ctx,
 
 #endif // riscv
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // x86
 ////////////////////////////////////////////////////////////////////////////////
@@ -677,7 +674,6 @@ static void llco_asmctx_make(struct llco_asmctx *ctx,
     ctx->stack_limit = stack_base;
     ctx->dealloc_stack = stack_base;
 }
-
 
 #else
 
