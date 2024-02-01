@@ -86,6 +86,7 @@ const char *llco_method(void *caps);
 - `-DLLCO_NOASM`: Disable assembly. Use ucontext fallback instead.
 - `-DLLCO_STACKJMP`: Use `setjmp` and `longjmp` for jumping between stacks, 
    even with the assembly method.
+- `-DLLCO_VALGRIND`: Enable support for Valgrind
 
 ## Acknowledgements
 

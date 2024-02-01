@@ -35,6 +35,10 @@ struct llco;
 
 #include <stdlib.h>
 
+#ifdef LLCO_VALGRIND
+#include <valgrind/valgrind.h>
+#endif
+
 #ifndef LLCO_EXTERN
 #define LLCO_EXTERN
 #endif
@@ -910,7 +914,15 @@ struct llco {
 #elif defined(LLCO_WINDOWS)
     LPVOID fiber;
 #endif
+#ifdef LLCO_VALGRIND
+    int valgrind_stack_id;
+#endif
 };
+
+#ifdef LLCO_VALGRIND
+static __thread unsigned int llco_valgrind_stack_id = 0;
+static __thread unsigned int llco_cleanup_valgrind_stack_id = 0;
+#endif
 
 static __thread struct llco llco_thread = { 0 };
 static __thread struct llco *llco_cur = NULL;
@@ -930,6 +942,9 @@ static void llco_cleanup_last(void) {
     if (llco_cleanup_needed) {
         if (llco_cleanup_desc.cleanup) {
             llco_cleanup_active = true;
+#ifdef LLCO_VALGRIND
+            VALGRIND_STACK_DEREGISTER(llco_cleanup_valgrind_stack_id);
+#endif
             llco_cleanup_desc.cleanup(llco_cleanup_desc.stack, 
                 llco_cleanup_desc.stack_size, llco_cleanup_desc.udata);
             llco_cleanup_active = false;
@@ -949,6 +964,9 @@ static void llco_entry(void *arg) {
     struct llco self = { .desc = llco_desc };
     llco_cur = &self;
 #endif
+#ifdef LLCO_VALGRIND
+    llco_cur->valgrind_stack_id = llco_valgrind_stack_id;
+#endif
     llco_cur->desc.entry(llco_cur->desc.udata);
     llco_exit();
 }
@@ -957,6 +975,9 @@ LLCO_NOINLINE
 static void llco_switch1(struct llco *from, struct llco *to, 
     void *stack, size_t stack_size)
 {
+#ifdef LLCO_VALGRIND
+    llco_valgrind_stack_id = VALGRIND_STACK_REGISTER(stack, stack + stack_size);
+#endif
 #if defined(LLCO_STACKJMP)
     if (to) {
         if (!_setjmp(from->buf)) {
@@ -1006,6 +1027,9 @@ static void llco_switch0(struct llco_desc *desc, struct llco *co,
         if (final) {
             llco_cleanup_needed = true;
             llco_cleanup_desc = from->desc;
+#ifdef LLCO_VALGRIND
+            llco_cleanup_valgrind_stack_id = from->valgrind_stack_id;
+#endif
         }
         if (desc) {
             llco_desc = *desc;
