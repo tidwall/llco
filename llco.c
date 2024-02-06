@@ -913,6 +913,9 @@ struct llco {
 #ifdef LLCO_VALGRIND
     int valgrind_stack_id;
 #endif
+#if defined(__GNUC__)
+    void *uw_stop_ip; // record of the last unwind ip.
+#endif
 };
 
 #ifdef LLCO_VALGRIND
@@ -964,7 +967,7 @@ static void llco_entry_wrap(void *arg) {
     llco_cur->valgrind_stack_id = llco_valgrind_stack_id;
 #endif
 #if defined(__GNUC__)
-    printf("wrap: >>> %p\n", __builtin_return_address(0));
+    llco_cur->uw_stop_ip = __builtin_return_address(0);
 #endif
     llco_cur->desc.entry(llco_cur->desc.udata);
 }
@@ -1087,4 +1090,13 @@ const char *llco_method(void *caps) {
         ",stackjmp"
 #endif
     ;
+}
+
+LLCO_EXTERN
+void *llco_stop_ip(void) {
+#if defined(__GNUC__)
+    return llco_cur->uw_stop_ip;
+#else
+    return 0;
+#endif
 }
