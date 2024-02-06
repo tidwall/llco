@@ -16,7 +16,7 @@ static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
     printf("== UNWIND ==\n");
     int ipBefore = 0;
     uintptr_t ip = _Unwind_GetIPInfo(uwc, &ipBefore);
-    printf("%p %d\n", ip, ipBefore);
+    printf("%p %d\n", (void*)ip, ipBefore);
     return _URC_END_OF_STACK;
 }
 
