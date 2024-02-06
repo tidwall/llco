@@ -1185,5 +1185,3 @@ int llco_unwind(bool (*func)(struct llco_symbol *)) {
     return 0;
 }
 #endif
-
-
