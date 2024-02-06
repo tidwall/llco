@@ -98,7 +98,7 @@ __attribute__((noinline)) void func1(int x) { printf("func1\n"); func2(x); }
 void entry(void *udata) {
 
     printf("== COROUTINE ==\n");
-    printf("  frame_address: %p\n", __builtin_frame_address());
+    printf("  frame_address: %p\n", __builtin_frame_address(0));
     func1(10);
     printf("== SWITCH TO MAIN ==\n");
     llco_switch(0, true);
