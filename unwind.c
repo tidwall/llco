@@ -17,7 +17,16 @@ static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
     int ipBefore = 0;
     uintptr_t cfa = _Unwind_GetCFA(uwc);
     uintptr_t ip = _Unwind_GetIPInfo(uwc, &ipBefore);
+#ifdef __linux__
+    uintptr_t data_rel_base = _Unwind_GetDataRelBase(uwc);
+    uintptr_t text_rel_base = _Unwind_GetTextRelBase(uwc);
+#else
+    uintptr_t data_rel_base = 0;
+    uintptr_t text_rel_base = 0;
+#endif
     printf("cfa: %p, ip: %p ipBefore: %d\n", (void*)cfa, (void*)ip, ipBefore);
+    printf("data_rel_base: %p, text_rel_base: %p\n", 
+        (void*)data_rel_base, (void*)text_rel_base);
     if (ip) {
 
     }
