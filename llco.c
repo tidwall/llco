@@ -974,7 +974,7 @@ static void llco_entry_wrap(void *arg) {
 #ifdef LLCO_VALGRIND
     llco_cur->valgrind_stack_id = llco_valgrind_stack_id;
 #endif
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__EMSCRIPTEN__)
     llco_cur->uw_stop_ip = __builtin_return_address(0);
 #endif
     llco_cur->desc.entry(llco_cur->desc.udata);
@@ -1101,7 +1101,7 @@ const char *llco_method(void *caps) {
 }
 
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__EMSCRIPTEN__)
 
 #include <unwind.h>
 #include <string.h>
@@ -1181,6 +1181,7 @@ int llco_unwind(bool (*func)(struct llco_symbol *)) {
 #else
 int llco_unwind(bool (*func)(struct llco_symbol *)) {
     /* Unsupported */
+    return 0;
 }
 #endif
 
