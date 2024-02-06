@@ -951,9 +951,6 @@ static void llco_cleanup_last(void) {
 
 LLCO_NOINLINE
 static void llco_entry_wrap(void *arg) {
-#if defined(__GNUC__)
-    printf("wrap: >>> %p\n", __builtin_return_address(0));
-#endif
     llco_cleanup_last();
 #if defined(LLCO_WASM)
     llco_cur = arg;
@@ -965,6 +962,9 @@ static void llco_entry_wrap(void *arg) {
 #endif
 #ifdef LLCO_VALGRIND
     llco_cur->valgrind_stack_id = llco_valgrind_stack_id;
+#endif
+#if defined(__GNUC__)
+    printf("wrap: >>> %p\n", __builtin_return_address(0));
 #endif
     llco_cur->desc.entry(llco_cur->desc.udata);
 }
