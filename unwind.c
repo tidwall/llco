@@ -15,8 +15,12 @@ void cleanup(void *stk, size_t stksz, void *udata) {
 static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
     printf("== UNWIND ==\n");
     int ipBefore = 0;
+    uintptr_t cfa = _Unwind_GetCFA(uwc);
     uintptr_t ip = _Unwind_GetIPInfo(uwc, &ipBefore);
-    printf("%p %d\n", (void*)ip, ipBefore);
+    printf("cfa: %p, ip: %p ipBefore: %d\n", (void*)cfa, (void*)ip, ipBefore);
+    if (ip) {
+
+    }
     return _URC_END_OF_STACK;
 }
 
