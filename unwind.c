@@ -43,13 +43,7 @@ static void unwind_getinfo(struct _Unwind_Context *uwc,
     info->text_rel_base = (void*)_Unwind_GetTextRelBase(uwc);
 #endif
     Dl_info dl_info = { 0 };
-    // if (info->ip && dladdr(info->ip, &dl_info)) {
-    //     info->fname = dl_info.dli_fname;
-    //     info->fbase = dl_info.dli_fbase;
-    //     info->sname = dl_info.dli_sname;
-    //     info->saddr = dl_info.dli_saddr;
-    // } else 
-    if (info->cfa && dladdr(info->cfa, &dl_info)) {
+    if (info->ip && dladdr(info->ip, &dl_info)) {
         info->fname = dl_info.dli_fname;
         info->fbase = dl_info.dli_fbase;
         info->sname = dl_info.dli_sname;
