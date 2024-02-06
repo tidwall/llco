@@ -29,6 +29,14 @@ struct llco_desc {
     void *udata;
 };
 struct llco;
+struct llco_symbol {
+    void *cfa;
+    void *ip;
+    const char *fname;
+    void *fbase;
+    const char *sname;
+    void *saddr;
+};
 #endif
 
 #include <stdlib.h>
@@ -1077,7 +1085,7 @@ void llco_switch(struct llco *co, bool final) {
 LLCO_EXTERN
 struct llco *llco_current(void) {
     llco_cleanup_guard();
-    return llco_cur;
+    return llco_cur == &llco_thread ? 0 : llco_cur;
 }
 
 // Returns a string that indicates which coroutine method is being used by
@@ -1092,11 +1100,85 @@ const char *llco_method(void *caps) {
     ;
 }
 
-LLCO_EXTERN
-void *llco_stop_ip(void) {
+
 #if defined(__GNUC__)
-    return llco_cur->uw_stop_ip;
-#else
-    return 0;
-#endif
+
+#include <unwind.h>
+#include <string.h>
+
+typedef struct dl_info {
+    const char      *dli_fname;     /* Pathname of shared object */
+    void            *dli_fbase;     /* Base address of shared object */
+    const char      *dli_sname;     /* Name of nearest symbol */
+    void            *dli_saddr;     /* Address of nearest symbol */
+} Dl_info;
+int dladdr(const void *, Dl_info *);
+
+static void llco_getsymbol(struct _Unwind_Context *uwc, 
+    struct llco_symbol *sym)
+{
+    memset(sym, 0, sizeof(struct llco_symbol));
+    sym->cfa = (void*)_Unwind_GetCFA(uwc);
+    int ip_before; /* unused */
+    sym->ip = (void*)_Unwind_GetIPInfo(uwc, &ip_before);
+    Dl_info dl_info = { 0 };
+    if (sym->ip && dladdr(sym->ip, &dl_info)) {
+        sym->fname = dl_info.dli_fname;
+        sym->fbase = dl_info.dli_fbase;
+        sym->sname = dl_info.dli_sname;
+        sym->saddr = dl_info.dli_saddr;
+    }
 }
+
+struct llco_unwind_context {
+    int nsymbols;
+    struct llco_symbol last;
+    bool (*func)(struct llco_symbol *);
+};
+
+static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
+    struct llco_unwind_context *ctx = ptr;
+    struct llco *cur = llco_current();
+    if (cur && !cur->uw_stop_ip) {
+        return _URC_END_OF_STACK;
+    }
+    struct llco_symbol sym;
+    llco_getsymbol(uwc, &sym);
+    if (cur && sym.ip == cur->uw_stop_ip) {
+        if (ctx->nsymbols > 0) {
+            ctx->nsymbols--;
+        }
+        return _URC_END_OF_STACK;
+    }
+    ctx->nsymbols++;
+    if (!cur) {
+        if (!ctx->func(&sym)) {
+            return _URC_END_OF_STACK;
+        }
+    } else {
+        if (ctx->nsymbols > 1) {
+            if (!ctx->func(&ctx->last)) {
+                return _URC_END_OF_STACK;
+            }
+        }
+        ctx->last = sym;
+    }
+    return _URC_NO_REASON;
+}
+
+int llco_unwind(bool (*func)(struct llco_symbol *)) {
+    if (func) {
+        struct llco_unwind_context ctx = { .func = func };
+        _Unwind_Backtrace(llco_func, &ctx);
+        return ctx.nsymbols;
+    }
+    return 0;
+}
+
+#else
+void llco_unwind(bool (*func)(struct llco_symbol *)) {
+    /* Unsupported */
+}
+#endif
+
+
