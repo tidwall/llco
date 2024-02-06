@@ -9,6 +9,7 @@
 #include <unwind.h>
 
 
+void *llco_stop_ip(void);
 
 typedef struct dl_info {
     const char      *dli_fname;     /* Pathname of shared object */
@@ -51,10 +52,15 @@ static void unwind_getinfo(struct _Unwind_Context *uwc,
 }
 
 static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
-    printf("== UNWIND ==\n");
+    if (!llco_stop_ip()) {
+    }
     struct unwind_info info;
     unwind_getinfo(uwc, &info);
+    if (info.ip == llco_stop_ip()) {
+        return _URC_END_OF_STACK;
+    }
 
+    printf("== UNWIND ==\n");
     printf("  cfa:           %p\n", info.cfa);
     printf("  ip:            %p\n", info.ip);
     printf("  ip_before:     %d\n", info.ip_before);
@@ -66,7 +72,6 @@ static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
     printf("  saddr:         %p\n", info.saddr);
 
     return _URC_NO_REASON;
-    return _URC_END_OF_STACK;
 }
 
 
@@ -96,10 +101,8 @@ __attribute__((noinline)) void func1(int x) { printf("func1\n"); func2(x); }
 
 // __attribute__((noinline))
 void entry(void *udata) {
-    
+
     printf("== COROUTINE ==\n");
-    printf("  frame_address: %p\n", __builtin_frame_address(0));
-    printf("  return_address: %p\n", __builtin_return_address(0));
     func1(10);
     printf("== SWITCH TO MAIN ==\n");
     llco_switch(0, true);
