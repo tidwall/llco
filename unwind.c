@@ -7,8 +7,18 @@
 
 
 #include <unwind.h>
-#define _GNU_SOURCE
-#include <dlfcn.h>
+
+
+
+typedef struct dl_info {
+    const char      *dli_fname;     /* Pathname of shared object */
+    void            *dli_fbase;     /* Base address of shared object */
+    const char      *dli_sname;     /* Name of nearest symbol */
+    void            *dli_saddr;     /* Address of nearest symbol */
+} Dl_info;
+int dladdr(const void *, Dl_info *);
+int dladdr1(const void *addr, Dl_info *info, void **extra_info, int flags);
+
 
 struct unwind_info {
     void *cfa;
