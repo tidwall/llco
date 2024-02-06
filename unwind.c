@@ -48,6 +48,11 @@ static void unwind_getinfo(struct _Unwind_Context *uwc,
         info->fbase = dl_info.dli_fbase;
         info->sname = dl_info.dli_sname;
         info->saddr = dl_info.dli_saddr;
+    } else if (info->cfa && dladdr(info->cfa, &dl_info)) {
+        info->fname = dl_info.dli_fname;
+        info->fbase = dl_info.dli_fbase;
+        info->sname = dl_info.dli_sname;
+        info->saddr = dl_info.dli_saddr;
     }
 }
 
