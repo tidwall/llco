@@ -1144,7 +1144,7 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
     }
     struct llco_symbol sym;
     llco_getsymbol(uwc, &sym);
-    if (cur && sym.ip == cur->uw_stop_ip) {
+    if (!sym.ip || (cur && sym.ip == cur->uw_stop_ip)) {
         if (ctx->nsymbols > 0) {
             ctx->nsymbols--;
         }
