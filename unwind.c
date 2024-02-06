@@ -7,6 +7,7 @@
 
 
 #include <unwind.h>
+#define _GNU_SOURCE
 #include <dlfcn.h>
 
 struct unwind_info {
