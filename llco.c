@@ -1180,6 +1180,7 @@ int llco_unwind(bool (*func)(struct llco_symbol *)) {
 
 #else
 int llco_unwind(bool (*func)(struct llco_symbol *)) {
+    (void)func;
     /* Unsupported */
     return 0;
 }
