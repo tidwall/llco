@@ -1134,6 +1134,7 @@ struct llco_unwind_context {
     int nsymbols;
     struct llco_symbol last;
     bool (*func)(struct llco_symbol *);
+    void *unwind_addr;
 };
 
 static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
@@ -1152,11 +1153,13 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
     }
     ctx->nsymbols++;
     if (!cur) {
-        if (!ctx->func(&sym)) {
-            return _URC_END_OF_STACK;
+        if (ctx->nsymbols > 1) {
+            if (!ctx->func(&sym)) {
+                return _URC_END_OF_STACK;
+            }
         }
     } else {
-        if (ctx->nsymbols > 1) {
+        if (ctx->nsymbols > 2) {
             if (!ctx->func(&ctx->last)) {
                 return _URC_END_OF_STACK;
             }
@@ -1167,12 +1170,16 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
 }
 
 int llco_unwind(bool (*func)(struct llco_symbol *)) {
+    int nsymbols = 0;
     if (func) {
         struct llco_unwind_context ctx = { .func = func };
         _Unwind_Backtrace(llco_func, &ctx);
-        return ctx.nsymbols;
+        nsymbols = ctx.nsymbols;
     }
-    return 0;
+    if (nsymbols > 0) {
+        nsymbols--;
+    }
+    return nsymbols;
 }
 
 #else
