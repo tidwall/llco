@@ -17,7 +17,6 @@ typedef struct dl_info {
     void            *dli_saddr;     /* Address of nearest symbol */
 } Dl_info;
 int dladdr(const void *, Dl_info *);
-int dladdr1(const void *addr, Dl_info *info, void **extra_info, int flags);
 
 
 struct unwind_info {
@@ -31,8 +30,6 @@ struct unwind_info {
     const char *sname;     /* Name of nearest symbol */
     void *saddr;           /* Address of nearest symbol */
 };
-
-#include <link.h>
 
 static void unwind_getinfo(struct _Unwind_Context *uwc, 
     struct unwind_info *info)
@@ -51,7 +48,6 @@ static void unwind_getinfo(struct _Unwind_Context *uwc,
         info->sname = dl_info.dli_sname;
         info->saddr = dl_info.dli_saddr;
     }
-    dladdr1(info->ip, &dl_info, )
 }
 
 static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
