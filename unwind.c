@@ -1,8 +1,68 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <unwind.h>
 #include "llco.h"
+
+
+
+#include <unwind.h>
+#include <dlfcn.h>
+
+struct unwind_info {
+    void *cfa;
+    void *ip;
+    int ip_before;
+    void *data_rel_base;
+    void *text_rel_base;
+    const char *fname;     /* Pathname of shared object */
+    void *fbase;           /* Base address of shared object */
+    const char *sname;     /* Name of nearest symbol */
+    void *saddr;           /* Address of nearest symbol */
+};
+
+static void unwind_getinfo(struct _Unwind_Context *uwc, 
+    struct unwind_info *info)
+{
+    memset(info, 0, sizeof(struct unwind_info));
+    info->cfa = (void*)_Unwind_GetCFA(uwc);
+    info->ip = (void*)_Unwind_GetIPInfo(uwc, &info->ip_before);
+#ifdef __linux__
+    info->data_rel_base = (void*)_Unwind_GetDataRelBase(uwc);
+    info->text_rel_base = (void*)_Unwind_GetTextRelBase(uwc);
+#endif
+    Dl_info dl_info = { 0 };
+    if (info->ip && dladdr(info->ip, &dl_info)) {
+        info->fname = dl_info.dli_fname;
+        info->fbase = dl_info.dli_fbase;
+        info->sname = dl_info.dli_sname;
+        info->saddr = dl_info.dli_saddr;
+    }
+}
+
+static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
+    printf("== UNWIND ==\n");
+    struct unwind_info info;
+    unwind_getinfo(uwc, &info);
+
+    printf("  cfa:           %p\n", info.cfa);
+    printf("  ip:            %p\n", info.ip);
+    printf("  ip_before:     %d\n", info.ip_before);
+    printf("  data_rel_base: %p\n", info.data_rel_base);
+    printf("  text_rel_base: %p\n", info.text_rel_base);
+    printf("  fname:         %s\n", info.fname);
+    printf("  fbase:         %p\n", info.fbase);
+    printf("  sname:         %s\n", info.sname);
+    printf("  saddr:         %p\n", info.saddr);
+
+    return _URC_NO_REASON;
+    return _URC_END_OF_STACK;
+}
+
+
+
+
+
 
 
 #define STKSZ 32768
@@ -12,26 +72,6 @@ void cleanup(void *stk, size_t stksz, void *udata) {
     free(stk);
 }
 
-static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
-    printf("== UNWIND ==\n");
-    int ipBefore = 0;
-    uintptr_t cfa = _Unwind_GetCFA(uwc);
-    uintptr_t ip = _Unwind_GetIPInfo(uwc, &ipBefore);
-#ifdef __linux__
-    uintptr_t data_rel_base = _Unwind_GetDataRelBase(uwc);
-    uintptr_t text_rel_base = _Unwind_GetTextRelBase(uwc);
-#else
-    uintptr_t data_rel_base = 0;
-    uintptr_t text_rel_base = 0;
-#endif
-    printf("cfa: %p, ip: %p ipBefore: %d\n", (void*)cfa, (void*)ip, ipBefore);
-    printf("data_rel_base: %p, text_rel_base: %p\n", 
-        (void*)data_rel_base, (void*)text_rel_base);
-    if (ip) {
-
-    }
-    return _URC_END_OF_STACK;
-}
 
 __attribute__((noinline)) void func4(int x) { 
     printf("func4 (%d)\n", x); 
