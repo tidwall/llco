@@ -951,6 +951,9 @@ static void llco_cleanup_last(void) {
 
 LLCO_NOINLINE LLCO_NORETURN
 static void llco_entry(void *arg) {
+#if defined(__GNUC__)
+    printf(">>> %p %p\n", __builtin_frame_address(0), __builtin_return_address(0));
+#endif
     llco_cleanup_last();
 #if defined(LLCO_WASM)
     llco_cur = arg;
