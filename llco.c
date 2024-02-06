@@ -949,10 +949,10 @@ static void llco_cleanup_last(void) {
     }
 }
 
-LLCO_NOINLINE LLCO_NORETURN
-static void llco_entry(void *arg) {
+LLCO_NOINLINE
+static void llco_entry_wrap(void *arg) {
 #if defined(__GNUC__)
-    printf(">>> %p %p\n", __builtin_frame_address(0), __builtin_return_address(0));
+    printf("wrap: >>> %p %p\n", __builtin_frame_address(0), __builtin_return_address(0));
 #endif
     llco_cleanup_last();
 #if defined(LLCO_WASM)
@@ -967,6 +967,15 @@ static void llco_entry(void *arg) {
     llco_cur->valgrind_stack_id = llco_valgrind_stack_id;
 #endif
     llco_cur->desc.entry(llco_cur->desc.udata);
+}
+
+
+LLCO_NOINLINE LLCO_NORETURN
+static void llco_entry(void *arg) {
+#if defined(__GNUC__)
+    printf("entry: >>> %p %p\n", __builtin_frame_address(0), __builtin_return_address(0));
+#endif
+    llco_entry_wrap(arg);
     llco_exit();
 }
 
