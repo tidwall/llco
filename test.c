@@ -64,6 +64,7 @@ void entry1(void *udata) {
 
 int main(void) {
     printf("%s\n", llco_method(0));
+    assert(!llco_current());
     tprintf("(mark A)\n");
     struct llco_desc desc = {
         .stack = malloc(STKSZ),
@@ -74,7 +75,7 @@ int main(void) {
     };
     llco_start(&desc, false);
     tprintf("(mark E)\n");
-
+    assert(!llco_current());
     const char *exp = 
         "(mark A)\n"
         "(entry 1)\n"
