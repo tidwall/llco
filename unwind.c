@@ -55,11 +55,11 @@ static _Unwind_Reason_Code btfnc(struct _Unwind_Context *uwc, void *ptr) {
     struct unwind_info info;
     unwind_getinfo(uwc, &info);
 
-    // printf("  cfa:           %p\n", info.cfa);
+    printf("  cfa:           %p\n", info.cfa);
     printf("  ip:            %p\n", info.ip);
-    // printf("  ip_before:     %d\n", info.ip_before);
-    // printf("  data_rel_base: %p\n", info.data_rel_base);
-    // printf("  text_rel_base: %p\n", info.text_rel_base);
+    printf("  ip_before:     %d\n", info.ip_before);
+    printf("  data_rel_base: %p\n", info.data_rel_base);
+    printf("  text_rel_base: %p\n", info.text_rel_base);
     printf("  fname:         %s\n", info.fname);
     printf("  fbase:         %p\n", info.fbase);
     printf("  sname:         %s\n", info.sname);
