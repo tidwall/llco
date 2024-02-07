@@ -1104,14 +1104,7 @@ const char *llco_method(void *caps) {
 
 #include <unwind.h>
 #include <string.h>
-
-typedef struct dl_info {
-    const char      *dli_fname;     /* Pathname of shared object */
-    void            *dli_fbase;     /* Base address of shared object */
-    const char      *dli_sname;     /* Name of nearest symbol */
-    void            *dli_saddr;     /* Address of nearest symbol */
-} Dl_info;
-int dladdr(const void *, Dl_info *);
+#include <dlfcn.h>
 
 static void llco_getsymbol(struct _Unwind_Context *uwc, 
     struct llco_symbol *sym)
