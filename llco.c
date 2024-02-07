@@ -28,7 +28,6 @@ struct llco_desc {
     void (*cleanup)(void *stack, size_t stack_size, void *udata);
     void *udata;
 };
-struct llco;
 struct llco_symbol {
     void *cfa;
     void *ip;
@@ -1131,10 +1130,11 @@ static void llco_getsymbol(struct _Unwind_Context *uwc,
 }
 
 struct llco_unwind_context {
+    void *udata;
     int nsymbols;
     int nsymbols_actual;
     struct llco_symbol last;
-    bool (*func)(struct llco_symbol *);
+    bool (*func)(struct llco_symbol *, void *);
     void *unwind_addr;
 };
 
@@ -1153,14 +1153,14 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
     if (!cur) {
         if (ctx->nsymbols > 1) {
             ctx->nsymbols_actual++;
-            if (!ctx->func(&sym)) {
+            if (!ctx->func(&sym, ctx->udata)) {
                 return _URC_END_OF_STACK;
             }
         }
     } else {
         if (ctx->nsymbols > 2) {
             ctx->nsymbols_actual++;
-            if (!ctx->func(&ctx->last)) {
+            if (!ctx->func(&ctx->last, ctx->udata)) {
                 return _URC_END_OF_STACK;
             }
         }
@@ -1169,9 +1169,10 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
     return _URC_NO_REASON;
 }
 
-int llco_unwind(bool (*func)(struct llco_symbol *)) {
+LLCO_EXTERN
+int llco_unwind(bool(*func)(struct llco_symbol *sym, void *udata), void *udata){
     if (func) {
-        struct llco_unwind_context ctx = { .func = func };
+        struct llco_unwind_context ctx = { .func = func, .udata = udata };
         _Unwind_Backtrace(llco_func, &ctx);
         return ctx.nsymbols_actual;
     }
@@ -1179,9 +1180,12 @@ int llco_unwind(bool (*func)(struct llco_symbol *)) {
 }
 
 #else
-int llco_unwind(bool (*func)(struct llco_symbol *)) {
+
+LLCO_EXTERN
+int llco_unwind(bool(*func)(struct llco_symbol *sym, void *udata), void *udata){
     (void)func;
     /* Unsupported */
     return 0;
 }
+
 #endif

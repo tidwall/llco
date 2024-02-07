@@ -31,6 +31,6 @@ struct llco_symbol {
     void *saddr;          // Address of nearest symbol
 };
 
-int llco_unwind(bool (*func)(struct llco_symbol *));
+int llco_unwind(bool(*func)(struct llco_symbol *sym, void *udata), void *udata);
 
 #endif // LLCO_H
