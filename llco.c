@@ -1104,6 +1104,7 @@ const char *llco_method(void *caps) {
 
 #include <unwind.h>
 #include <string.h>
+#define _GNU_SOURCE
 #include <dlfcn.h>
 
 static void llco_getsymbol(struct _Unwind_Context *uwc, 
