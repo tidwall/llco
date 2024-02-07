@@ -1104,8 +1104,14 @@ const char *llco_method(void *caps) {
 
 #include <unwind.h>
 #include <string.h>
-#define _GNU_SOURCE
-#include <dlfcn.h>
+
+struct llco_dlinfo {
+    const char      *dli_fname;     /* Pathname of shared object */
+    void            *dli_fbase;     /* Base address of shared object */
+    const char      *dli_sname;     /* Name of nearest symbol */
+    void            *dli_saddr;     /* Address of nearest symbol */
+};
+int dladdr(const void *, void *);
 
 static void llco_getsymbol(struct _Unwind_Context *uwc, 
     struct llco_symbol *sym)
@@ -1114,12 +1120,12 @@ static void llco_getsymbol(struct _Unwind_Context *uwc,
     sym->cfa = (void*)_Unwind_GetCFA(uwc);
     int ip_before; /* unused */
     sym->ip = (void*)_Unwind_GetIPInfo(uwc, &ip_before);
-    Dl_info dl_info = { 0 };
-    if (sym->ip && dladdr(sym->ip, &dl_info)) {
-        sym->fname = dl_info.dli_fname;
-        sym->fbase = dl_info.dli_fbase;
-        sym->sname = dl_info.dli_sname;
-        sym->saddr = dl_info.dli_saddr;
+    struct llco_dlinfo dlinfo = { 0 };
+    if (sym->ip && dladdr(sym->ip, &dlinfo)) {
+        sym->fname = dlinfo.dli_fname;
+        sym->fbase = dlinfo.dli_fbase;
+        sym->sname = dlinfo.dli_sname;
+        sym->saddr = dlinfo.dli_saddr;
     }
 }
 
