@@ -96,6 +96,9 @@ cc llco.c test.c && ./a.out
 
 # Using Valgrind
 cc -DLLCO_VALGRIND llco.c test.c && valgrind ./a.out
+
+# Using Emscripten (Web Assembly)
+emcc -sASYNCIFY llco.c test.c && node ./a.out.js
 ```
 
 ## Acknowledgements
