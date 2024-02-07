@@ -1130,6 +1130,8 @@ static void llco_getsymbol(struct _Unwind_Context *uwc,
 
 struct llco_unwind_context {
     void *udata;
+    void *start_ip;
+    bool started;
     int nsymbols;
     int nsymbols_actual;
     struct llco_symbol last;
@@ -1139,25 +1141,28 @@ struct llco_unwind_context {
 
 static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
     struct llco_unwind_context *ctx = ptr;
+    
     struct llco *cur = llco_current();
     if (cur && !cur->uw_stop_ip) {
         return _URC_END_OF_STACK;
     }
     struct llco_symbol sym;
     llco_getsymbol(uwc, &sym);
+    if (ctx->start_ip && !ctx->started && sym.ip != ctx->start_ip) {
+        return _URC_NO_REASON;
+    }
+    ctx->started = true;
     if (!sym.ip || (cur && sym.ip == cur->uw_stop_ip)) {
         return _URC_END_OF_STACK;
     }
     ctx->nsymbols++;
     if (!cur) {
-        if (ctx->nsymbols > 1) {
-            ctx->nsymbols_actual++;
-            if (ctx->func && !ctx->func(&sym, ctx->udata)) {
-                return _URC_END_OF_STACK;
-            }
+        ctx->nsymbols_actual++;
+        if (ctx->func && !ctx->func(&sym, ctx->udata)) {
+            return _URC_END_OF_STACK;
         }
     } else {
-        if (ctx->nsymbols > 2) {
+        if (ctx->nsymbols > 1) {
             ctx->nsymbols_actual++;
             if (ctx->func && !ctx->func(&ctx->last, ctx->udata)) {
                 return _URC_END_OF_STACK;
@@ -1170,7 +1175,13 @@ static _Unwind_Reason_Code llco_func(struct _Unwind_Context *uwc, void *ptr) {
 
 LLCO_EXTERN
 int llco_unwind(bool(*func)(struct llco_symbol *sym, void *udata), void *udata){
-    struct llco_unwind_context ctx = { .func = func, .udata = udata };
+    struct llco_unwind_context ctx = { 
+#if defined(__GNUC__) && !defined(__EMSCRIPTEN__)
+        .start_ip = __builtin_return_address(0),
+#endif
+        .func = func, 
+        .udata = udata 
+    };
     _Unwind_Backtrace(llco_func, &ctx);
     return ctx.nsymbols_actual;
 }
