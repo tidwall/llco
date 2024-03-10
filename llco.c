@@ -884,7 +884,7 @@ static void llco_stackjmp(void *stack, size_t stack_size,
     stackjmp_ucallee.uc_stack.ss_sp = stack;
     stackjmp_ucallee.uc_stack.ss_size = stack_size;
     llco_adjust_ucontext_stack(&stackjmp_ucallee);
-    makecontext(&stackjmp_ucallee, entry, 0);
+    makecontext(&stackjmp_ucallee, (void(*)(void))entry, 0);
     setcontext(&stackjmp_ucallee);
     llco_exit();
 }
