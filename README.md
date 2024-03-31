@@ -87,6 +87,7 @@ const char *llco_method(void *caps);
 - `-DLLCO_STACKJMP`: Use `setjmp` and `longjmp` for jumping between stacks, 
    even with the assembly method.
 - `-DLLCO_VALGRIND`: Enable support for Valgrind
+- `-DLLCO_NOUNWIND`: Disable support for stack unwinding
 
 ## Running test
 
