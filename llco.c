@@ -1057,6 +1057,8 @@ static void llco_switch0(struct llco_desc *desc, struct llco *co,
     }
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Exported methods
 ////////////////////////////////////////////////////////////////////////////////
@@ -1075,6 +1077,17 @@ void llco_start(struct llco_desc *desc, bool final) {
 // Switch to another coroutine.
 LLCO_EXTERN
 void llco_switch(struct llco *co, bool final) {
+#if defined(LLCO_ASM)
+    // fast track context switch. Saves a few nanoseconds by checking the 
+    // exception condition first.
+    if (!llco_cleanup_active && llco_cur && co && llco_cur != co && !final) {
+        struct llco *from = llco_cur;
+        llco_cur = co;
+        _llco_asm_switch(&from->ctx, &co->ctx);
+        llco_cleanup_last();
+        return;
+    }
+#endif
     llco_cleanup_guard();
     llco_switch0(0, co, final);
 }
