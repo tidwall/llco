@@ -71,7 +71,7 @@ const char *llco_method(void *caps);
 ## Caveats
 
 - Windows: Only x86_64 is supported at this time. The Windows Fibers API is not 
-  currently suitable as a fallback do to the `CreateFiber` call needing to
+  currently suitable as a fallback due to the `CreateFiber` call needing to
   allocate memory dynamically.
 - Webassembly: Must be compiled with Emscripten using the `-sASYNCIFY` flag.
 - All other platforms may fallback to using ucontext when the assembly method
