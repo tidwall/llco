@@ -2,5 +2,4 @@
 *.dSYM
 *.out
 *.o
-*.out.js
-*.out.wasm
+*.out.*
